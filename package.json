@@ -1,5 +1,5 @@
 {
-  "name": "cway-redis-llen",
+  "name": "cway-storm-redis-llen",
   "license": "ISC",
   "dependencies": {
     "dotenv": "^8.2.0",
