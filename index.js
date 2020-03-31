@@ -12,13 +12,13 @@ module.exports = {
  
         redisClient.on('error', function (err) {
           console.log(err);
-          resolve(null);
+          reject(null);
         });
 
         redisClient.llen(process.env.REDIS_KEY, function(err, length) {
           if (err) {
             console.log(err);
-            resolve(null);
+            reject(null);
             return;
           }
 
@@ -26,7 +26,7 @@ module.exports = {
         });
       } catch (e) {
         console.log(e);
-	resolve(null);
+	reject(null);
       }
     });
   }
