@@ -1,10 +1,13 @@
 require('dotenv').config({ path: __dirname + '/.env' });
+const redis = require('redis');
 
 module.exports = {
   run: function() {
     return new Promise(function(resolve, reject) {
+      let redisClient = null;
+
       try {
-        const redisClient = require('redis').createClient({
+        redisClient = redis.createClient({
           host: process.env.REDIS_HOST || '127.0.0.1',
           port: process.env.REDIS_PORT || 6379,
           db: process.env.REDIS_DB || 0,
@@ -26,9 +29,12 @@ module.exports = {
         });
       } catch (e) {
         console.log(e);
-	reject(null);
+	      reject(null);
+      } finally {
+        if (redisClient && redisClient.connected) {
+          redisClient.end(true);
+        }
       }
     });
   }
 }
-
