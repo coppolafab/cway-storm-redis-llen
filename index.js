@@ -22,16 +22,30 @@ module.exports = {
     return new Promise(function(resolve, reject) {
       let redisClient = null;
 
+      const fullfillAndClose = function(result) {
+        if (result === null) {
+          reject(null);
+        } else {
+          resolve(result);
+        }
+
+        if (redisClient && redisClient.connected) {
+          redisClient.end(true);
+        }
+      };
+
       try {
         redisClient = redis.createClient({
           host: self.args.REDIS_HOST,
           port: self.args.REDIS_PORT,
           db: self.args.REDIS_DB,
+          socket_keepalive: false,
+          disable_resubscribing: true,
         });
  
         redisClient.on('error', function (err) {
           console.log(err);
-          reject(null);
+          fullfillAndClose(null);
         });
 
         let lengthFn = null;
@@ -47,27 +61,22 @@ module.exports = {
             lengthFn = redisClient.zcard;
             break;
           default:
-            reject(null);
+            fullfillAndClose(null);
             return;
         }
 
         lengthFn.call(redisClient, self.args.REDIS_KEY, function(err, length) {
           if (err) {
             console.log(err);
-            reject(null);
-            return;
+            length = null;
           }
 
-          resolve(length);
+          fullfillAndClose(length);
         });
       } catch (e) {
         console.log(e);
-        reject(null);
-      } finally {
-        if (redisClient && redisClient.connected) {
-          redisClient.end(true);
-        }
+        fullfillAndClose(null);
       }
     });
   }
-}
+};
