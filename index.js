@@ -13,7 +13,7 @@ module.exports = {
     if (!args) return;
 
     try {
-      this.args = JSON.parse(args);
+      this.args = Object.assign(this.args, JSON.parse(args));
     } catch (e) {}
   },
   run: function() {
