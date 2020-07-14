@@ -1,25 +1,20 @@
 require('dotenv').config({ path: __dirname + '/.env' });
 const redis = require('redis');
 
-module.exports = {
-  args: {
-    REDIS_HOST: process.env.REDIS_HOST || '127.0.0.1',
-    REDIS_PORT: process.env.REDIS_PORT || 6379,
-    REDIS_DB: process.env.REDIS_DB || 0,
-    REDIS_KEY_TYPE: process.env.REDIS_KEY_TYPE || 'list',
-    REDIS_KEY: process.env.REDIS_KEY
-  },
-  setArguments: function(args) {
-    if (!args) return;
+const defaultArgs = {
+  REDIS_HOST: process.env.REDIS_HOST || '127.0.0.1',
+  REDIS_PORT: process.env.REDIS_PORT || 6379,
+  REDIS_DB: process.env.REDIS_DB || 0,
+  REDIS_KEY_TYPE: process.env.REDIS_KEY_TYPE || 'list',
+  REDIS_KEY: process.env.REDIS_KEY,
+};
 
-    try {
-      this.args = Object.assign(this.args, JSON.parse(args));
-    } catch (e) {}
+module.exports = {
+  setArguments: function(args) {
+    this.args = Object.assign({}, defaultArgs, args);
   },
   run: function() {
-    const self = this;
-
-    return new Promise(function(resolve, reject) {
+    return new Promise((resolve, reject) => {
       let redisClient = null;
 
       const fullfillAndClose = function(result) {
@@ -36,9 +31,9 @@ module.exports = {
 
       try {
         redisClient = redis.createClient({
-          host: self.args.REDIS_HOST,
-          port: self.args.REDIS_PORT,
-          db: self.args.REDIS_DB,
+          host: this.args.REDIS_HOST,
+          port: this.args.REDIS_PORT,
+          db: this.args.REDIS_DB,
           socket_keepalive: false,
           disable_resubscribing: true,
         });
@@ -50,7 +45,7 @@ module.exports = {
 
         let lengthFn = null;
 
-        switch (self.args.REDIS_KEY_TYPE) {
+        switch (this.args.REDIS_KEY_TYPE) {
           case 'list':
             lengthFn = redisClient.llen;
             break;
@@ -65,7 +60,7 @@ module.exports = {
             return;
         }
 
-        lengthFn.call(redisClient, self.args.REDIS_KEY, function(err, length) {
+        lengthFn.call(redisClient, this.args.REDIS_KEY, function(err, length) {
           if (err) {
             console.log(err);
             length = null;
